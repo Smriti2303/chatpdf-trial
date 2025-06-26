@@ -1,10 +1,5 @@
-venv/
+*.pyc
 __pycache__/
-*.pkl
-*.db
-*.log
-*.gguf
-models/
-uploads/
-faiss_index/
+venv/
 .env
+models/
