@@ -16,15 +16,10 @@ from pydantic import Field
 load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
 
-# --- Initialize session state ---
-for key, default in {
-    "chat_history": [],
-    "chat_history_display": [],
-    "smart_mode": True,
-    "selected_pdf": "All PDFs"
-}.items():
-    if key not in st.session_state:
-        st.session_state[key] = default
+# --- Auto-build FAISS index if not present ---
+if not os.path.exists("faiss_index/index.pkl"):
+    from preprocess_pdfs import main as build_index
+    build_index()
 
 # --- Load FAISS vectorstore ---
 with open("faiss_index/index.pkl", "rb") as f:
@@ -35,6 +30,16 @@ if isinstance(vectorstore_data, tuple) and hasattr(vectorstore_data[0], "similar
 else:
     st.error("Invalid FAISS vectorstore loaded. Please regenerate the index.")
     st.stop()
+
+# --- Initialize session state ---
+for key, default in {
+    "chat_history": [],
+    "chat_history_display": [],
+    "smart_mode": True,
+    "selected_pdf": "All PDFs"
+}.items():
+    if key not in st.session_state:
+        st.session_state[key] = default
 
 # --- Extract available PDFs ---
 try:
@@ -91,9 +96,11 @@ def handle_userinput(query: str):
         result = chain({"question": query, "chat_history": st.session_state.chat_history})
         end = time.time()
         response_time = round(end - start, 2)
+
         st.session_state.chat_history.append((query, result["answer"]))
         st.session_state.chat_history_display.insert(0, (query, result["answer"], response_time))
         display_chat(query, result["answer"], response_time)
+        st.session_state.question = ""  # Reset input box
 
 # --- Main layout ---
 def main():
@@ -124,7 +131,7 @@ def main():
         if question:
             handle_userinput(question)
 
-        if st.session_state.chat_history:
+        if st.session_state.chat_history_display:
             st.markdown("### 🧠 Conversation")
             for q, a, t in st.session_state.chat_history_display:
                 display_chat(q, a, t)
