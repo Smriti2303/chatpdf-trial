@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pkl
+*.db
+*.log
+*.gguf
+models/
+uploads/
+faiss_index/
+.env
