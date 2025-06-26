@@ -154,7 +154,4 @@ MIT License. Use freely, credit appreciated.
 
 ---
 
-✅ *You can now save this as `README.md` in your project root.*
 
-Would you like me to also generate a sample `requirements.txt` or `.gitignore` file to go with it?
-```
